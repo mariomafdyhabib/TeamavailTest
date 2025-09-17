@@ -1,40 +1,57 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const bodyParser = require('body-parser');
+const { Pool } = require('pg');
+const path = require('path');
 
 const app = express();
 const PORT = 3000;
 
-// Middleware
-app.use(bodyParser.json());
-
-// Serve static frontend
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Serve input JSON files
-app.use('/input', express.static(path.join(__dirname, 'input')));
-
-// Serve output folder (for history.json)
-app.use('/output', express.static(path.join(__dirname, 'output')));
-
-// API to save history data
-app.post('/save-history', (req, res) => {
-  const historyPath = path.join(__dirname, 'output', 'history.json');
-  const json = JSON.stringify(req.body, null, 2);
-
-  fs.writeFile(historyPath, json, 'utf8', (err) => {
-    if (err) {
-      console.error('Error saving history.json:', err);
-      res.status(500).send('Failed to save history.json');
-    } else {
-      console.log('History successfully saved.');
-      res.status(200).send('Saved');
-    }
-  });
+// PostgreSQL connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL, // set in docker-compose
 });
 
-// Start server
+// Body parser
+app.use(bodyParser.json());
+
+// ✅ Serve static folders: public, input, output
+app.use(express.static(path.join(__dirname, 'public')));  // for index.html, JS, CSS
+app.use('/input', express.static(path.join(__dirname, 'input')));  // for /input/*.json
+app.use('/output', express.static(path.join(__dirname, 'output'))); // for /output/*.json if needed
+
+// ✅ API routes first
+app.post('/save-history', async (req, res) => {
+  try {
+    const json = req.body;
+    if (Object.keys(json).length === 0) {
+      return res.status(400).send('Cannot save empty history');
+    }
+    await pool.query('INSERT INTO history (data) VALUES ($1)', [json]);
+    console.log('History successfully saved.');
+    res.status(200).send('Saved');
+  } catch (err) {
+    console.error('Error saving history:', err);
+    res.status(500).send('Failed to save history');
+  }
+});
+
+app.get('/get-history', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT data FROM history ORDER BY created_at DESC LIMIT 1'
+    );
+    res.json(result.rows.length > 0 ? result.rows[0].data : {});
+  } catch (err) {
+    console.error('Error retrieving history:', err);
+    res.status(500).send('Failed to fetch history');
+  }
+});
+
+// Root route -> index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });

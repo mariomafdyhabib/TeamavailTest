@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: teamavail-app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      # DB connection (use service name "db" not "postgres")
+      DATABASE_URL: postgres://user:password@db:5432/teamavail
+    volumes:
+      - ./app
+    command: ["node", "server.js"]  # ensure app runs your server explicitly
+
+  db:
+    image: postgres:15
+    container_name: teamavail-db
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: teamavail
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:

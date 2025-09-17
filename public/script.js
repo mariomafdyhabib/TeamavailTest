@@ -83,6 +83,7 @@ async function loadData() {
   const weeksRes = await fetch("/input/selection.json");
   const statusRes = await fetch("/input/status.json");
   const historyRes = await fetch("/output/history.json");
+  
 
   namesData = await namesRes.json();
   weeksData = await weeksRes.json();
