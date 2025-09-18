@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teamavail-app
+  labels:
+    app: teamavail
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: teamavail
+  template:
+    metadata:
+      labels:
+        app: teamavail
+    spec:
+      containers:
+        - name: teamavail
+          image: mariomafdyhabib/teamavailtest:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DATABASE_URL
+              value: "postgres://teamavail_user:StrongPass123@postgres:5432/teamavail"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: teamavail-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: teamavail
+  ports:
+    - port: 80
+      targetPort: 3000

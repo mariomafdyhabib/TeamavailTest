@@ -1,0 +1,15 @@
+# ignore Kubernetes manifests
+k8s/
+# ignore Terraform files
+terraform-gcp/
+# ignore Dockerfiles
+Dockerfile
+# ignore GitHub workflows
+.github/
+.git
+README.md
+*.md
+ci.sh
+docker-compose.yml
+.dockerignore
+.env
