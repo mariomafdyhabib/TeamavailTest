@@ -11,8 +11,8 @@ services:
     environment:
       # DB connection (use service name "db" not "postgres")
       DATABASE_URL: postgres://user:password@db:5432/teamavail
-    volumes:
-      - ./app
+    # volumes:
+    #   - ./app
     command: ["node", "server.js"]  # ensure app runs your server explicitly
 
   db:
