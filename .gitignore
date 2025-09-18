@@ -1,14 +1,44 @@
-# Node
+# ----------------
+# Node.js
+# ----------------
 node_modules/
-npm-debug.log
-yarn-error.log
+package-lock.json
+
+# ----------------
+# Logs
+# ----------------
+logs/
+*.log
+*.out
+*.err
+
+# ----------------
+# Environment files
+# ----------------
 .env
 
-# Docker
+
+# ----------------
+# Build / dist
+# ----------------
 dist/
 build/
 *.tgz
-*.env.local
+coverage/
 
-# OS
-.DS_Store
+# ----------------
+# Docker
+# ----------------
+docker-compose.override.yml
+
+
+
+# ----------------
+# Infrastructure (optional)
+# ----------------
+# Ignore generated Terraform state
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
