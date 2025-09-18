@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -7,13 +7,13 @@ on:
     branches: [ main ]
 
 jobs:
-  ci:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -27,14 +27,26 @@ jobs:
         run: |
           if grep -q "\"lint\"" package.json; then npm run lint; else echo "No lint script"; fi
 
-      - name: Test
+      - name: Run tests
         run: |
           if grep -q "\"test\"" package.json; then npm test; else echo "No test script"; fi
 
-      - name: Build Docker image
+  docker-build-and-push:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          push: false
-          tags: teamavailtest:ci
-
-      # optional: push image to registry if you configure secrets / registry
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/teamavailtest:latest
