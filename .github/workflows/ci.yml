@@ -50,3 +50,20 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/teamavailtest:latest
+
+  trivy-scan:
+    name: Trivy Security Scan
+    needs: docker-build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs   # options: fs (filesystem), image, repo
+          severity: CRITICAL,HIGH
+          format: table
+          # exit-code: 1    # fail if vulnerabilities found
+          ignore-unfixed: true
