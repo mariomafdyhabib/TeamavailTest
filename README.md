@@ -17,16 +17,17 @@ This repository contains **Team Availability Tracker**, a small app to manage an
 ## Error Handling & Debugging
 
 - **Empty History Check:** The backend rejects empty data to prevent accidental overwrites.
-- **Frontend Fetch Errors:** If a JSON fetch fails (e.g., missing file or DB issue), the frontend safely defaults to an empty object and renders the table without crashing.
+- **Frontend Fetch Errors:** edit historyRes to fetch dynamic history (/get-history)
 - **Database Errors:** All DB queries are wrapped in `try/catch` blocks with descriptive logging.
 - **Network & Docker Issues:** 
   - We ensure Docker volumes are correctly mapped (`./input` for JSON files, `postgres_data` for DB persistence).
   - For Docker Hub connection errors, increase timeouts or switch to a different Node base image (e.g., `node:18-bullseye`).
+- **Edit server.js** The backend send data to file instead of postgress.
 
 ## Requirements
 
 - Docker & Docker Compose
-- Node.js (for local testing/linting; optional if only using Docker)
+- Node.js (for local testing/linting)
 - bash (for `ci.sh`)
 
 ## Quick Start (Recommended)
