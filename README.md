@@ -42,4 +42,5 @@ This repository contains **Team Availability Tracker**, a small app to manage an
 
 ## URL
 http://localhost:3000/get-history
+
 http://localhost:3000
