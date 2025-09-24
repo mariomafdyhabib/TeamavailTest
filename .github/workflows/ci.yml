@@ -51,6 +51,43 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/teamavailtest:latest
 
+  build-and-push-on-ECR:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: us-east-1
+      ECR_REPOSITORY: 654654545585.dkr.ecr.us-east-1.amazonaws.com/mario/konecta
+      IMAGE_TAG: latest
+
+    steps:
+      # 1️⃣ Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2️⃣ Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # 3️⃣ Login to ECR
+      - name: Login to Amazon ECR
+        id: ecr-login
+        run: |
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY
+
+      # 4️⃣ Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build -f Dockerfile.lambda -t $ECR_REPOSITORY:$IMAGE_TAG .
+
+      # 5️⃣ Push Docker image to ECR
+      - name: Push Docker image
+        run: |
+          docker push $ECR_REPOSITORY:$IMAGE_TAG
+
   trivy-scan:
     name: Trivy Security Scan
     needs: docker-build-and-push
