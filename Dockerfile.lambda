@@ -1,0 +1,15 @@
+# Use AWS Lambda Node.js 18 base image
+FROM public.ecr.aws/lambda/nodejs:18
+
+# Copy package.json and package-lock.json first (for caching)
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install --production
+
+# Copy app source code
+COPY . .
+
+# Set the Lambda handler (the exported handler from lambda.js)
+# If your file is lambda.js and exports `handler`, use: lambda.handler
+CMD [ "lambda.handler" ]
