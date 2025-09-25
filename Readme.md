@@ -10,7 +10,9 @@ TeamAvailTest is a modern web application designed to track employee availabilit
 
 - Containerized application: Docker-based deployment with Lambda-compatible runtime
 
-- Modular Terraform design: Clean, reusable infrastructure code with output-driven architecture
+- CI/CD Pipelines: Automated deployment with GitHub Actions and Terraform Cloud
+
+- State Management: Remote state storage with Terraform Cloud/HCP
 
 ---
 ```
@@ -58,6 +60,254 @@ TeamavailTest/
     ├── outputs.tf            # Output values (function URL)
     └── provider.tf           # AWS provider configuration
 ```
+# CI/CD Pipeline Overview
+## Terraform Apply Pipeline (.github/workflows/terraform-apply.yml)
+Automatically deploys infrastructure on push to main branch:
+```
+yaml
+name: CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    if: startsWith(github.event.head_commit.message, 'apply')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+      - name: Lint
+        if: ${{ hashFiles('**/package.json') }}
+        run: |
+          if grep -q "\"lint\"" package.json; then npm run lint; else echo "No lint script"; fi
+
+      - name: Run tests
+        run: |
+          if grep -q "\"test\"" package.json; then npm test; else echo "No test script"; fi
+
+  
+  build-and-push-on-ECR:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    env:
+      AWS_REGION: us-east-1
+      ECR_REPOSITORY: 654654545585.dkr.ecr.us-east-1.amazonaws.com/mario/konecta
+      IMAGE_TAG: latest
+
+    steps:
+      
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        run: |
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY
+
+      - name: Build Docker image
+        run: |
+          docker build -f Dockerfile.lambda -t $ECR_REPOSITORY:$IMAGE_TAG .
+
+      - name: Push Docker image
+        run: |
+          docker push $ECR_REPOSITORY:$IMAGE_TAG
+
+  trivy-scan:
+    name: Trivy Security Scan
+    needs: build-and-push-on-ECR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs   # options: fs (filesystem), image, repo
+          severity: CRITICAL,HIGH
+          format: table
+          # exit-code: 1    # fail if vulnerabilities found
+          ignore-unfixed: true
+
+  terraform:
+    # if: startsWith(github.event.head_commit.message, 'terraform apply')
+    runs-on: ubuntu-latest
+    needs: trivy-scan
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.7.5
+          cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
+
+      - name: Terraform Init & Apply
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          TF_API_TOKEN_app_terraform_io: ${{ secrets.TFC_TOKEN }}
+        run: |
+          terraform init
+          terraform apply --auto-approve
+```
+## Terraform Destroy Pipeline (.github/workflows/terraform-destroy.yml)
+Safely destroys infrastructure on demand:
+```
+yaml
+name: Terraform Destroy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  terraform-destroy:
+    if: startsWith(github.event.head_commit.message, 'destroy')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.7.5
+          cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
+
+      - name: Terraform Destroy
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          TF_API_TOKEN_app_terraform_io: ${{ secrets.TFC_TOKEN }}
+        run: |
+          terraform init
+          terraform destroy --auto-approve
+
+```
+## Terraform Cloud/HCP Configuration
+backend.tf
+```
+hcl
+terraform {
+  backend "remote" {
+    organization = "your-organization-name"
+
+    workspaces {
+      name = "teamavailtest-prod"
+    }
+  }
+}
+```
+## Terraform Cloud Workspace Setup
+- Create Terraform Cloud Account
+
+- Sign up at https://app.terraform.io
+
+- Create an organization
+
+- Create Workspace
+
+- Choose "Version Control Workflow"
+
+- Connect your GitHub repository
+
+- Set workspace name: teamavailtest-prod
+
+- Configure Variables in Terraform Cloud
+
+## Terraform Variables:
+
+- region = "us-east-1"
+
+- function_name = "teamavail-lambda"
+
+- Environment Variables (Sensitive):
+
+- AWS_ACCESS_KEY_ID = your_aws_access_key
+
+- AWS_SECRET_ACCESS_KEY = your_aws_secret_key
+
+- DATABASE_HOST = your-database-host
+
+- DATABASE_USER = your-database-user
+
+- DATABASE_PASSWORD = your-database-password
+
+## Generate API Token
+
+- Go to User Settings > Tokens
+
+- Create a new API token
+
+- Store in GitHub Secrets as TF_API_TOKEN
+
+# GitHub Secrets Configuration
+## Configure these secrets in your GitHub repository settings:
+```
+Secret Name	Value	Description
+AWS_ACCESS_KEY_ID	your_aws_access_key	AWS IAM user access key
+AWS_SECRET_ACCESS_KEY	your_aws_secret_key	AWS IAM user secret key
+TF_API_TOKEN	your_terraform_cloud_token	Terraform Cloud API token
+TF_CLOUD_ORGANIZATION	your_org_name	Your Terraform Cloud organization
+DATABASE_URL	postgresql://user:pass@host/db	Database connection string
+```
+# Pipeline Execution Triggers
+## Automatic Triggers
+- Push to main branch: Triggers terraform-apply.yml
+
+- Pull request to main: Runs terraform plan for validation
+
+## Manual Triggers
+- Terraform Apply: Manual trigger via GitHub Actions UI
+
+- Terraform Destroy: Manual trigger for cleanup (requires approval)
+
+## Pipeline Stages
+- Validation: Terraform format and validate
+
+- Planning: Generate execution plan
+
+- Approval: Manual approval (for apply/destroy)
+
+- Execution: Apply or destroy infrastructure
+
+- Notification: Slack/email on completion
+
 ## Prerequisites
 - AWS Account with appropriate permissions
 
@@ -97,7 +347,9 @@ database_host = "your-database-host"
 database_user = "your-database-username"
 database_password = "your-database-password"
 ```
-![Description of image](photos/image .png)
+![Description of image](photos/1.png)
+
+![Description of image](photos/2.png)
 
 
 ## 4. Deploy Infrastructure
@@ -117,6 +369,8 @@ Terraform will:
 - Create an ECR repository for your Docker image
 
 - Build and push the Docker image to ECR
+
+ ![Description of image](photos/3.png)
 
 - Deploy the Lambda function with your database environment variables
 
