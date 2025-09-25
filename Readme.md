@@ -178,6 +178,8 @@ jobs:
           terraform init
           terraform apply --auto-approve
 ```
+
+![Description of image](photos/8.png)
 ## Terraform Destroy Pipeline (.github/workflows/terraform-destroy.yml)
 Safely destroys infrastructure on demand:
 ```
@@ -219,6 +221,7 @@ jobs:
           terraform destroy --auto-approve
 
 ```
+![Description of image](photos/7.png)
 ## Terraform Cloud/HCP Configuration
 backend.tf
 ```
@@ -249,6 +252,10 @@ terraform {
 - Set workspace name: teamavailtest-prod
 
 - Configure Variables in Terraform Cloud
+
+![Description of image](photos/5.png)
+
+![Description of image](photos/6.png)
 
 ## Terraform Variables:
 
@@ -286,6 +293,7 @@ TF_API_TOKEN	your_terraform_cloud_token	Terraform Cloud API token
 TF_CLOUD_ORGANIZATION	your_org_name	Your Terraform Cloud organization
 DATABASE_URL	postgresql://user:pass@host/db	Database connection string
 ```
+![Description of image](photos/4.png)
 # Pipeline Execution Triggers
 ## Automatic Triggers
 - Push to main branch: Triggers terraform-apply.yml
