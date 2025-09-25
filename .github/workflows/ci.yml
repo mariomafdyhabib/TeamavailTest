@@ -60,11 +60,10 @@ jobs:
       IMAGE_TAG: latest
 
     steps:
-      # 1️⃣ Checkout code
+      
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -72,18 +71,15 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # 3️⃣ Login to ECR
       - name: Login to Amazon ECR
         id: ecr-login
         run: |
           aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY
 
-      # 4️⃣ Build Docker image
       - name: Build Docker image
         run: |
           docker build -f Dockerfile.lambda -t $ECR_REPOSITORY:$IMAGE_TAG .
 
-      # 5️⃣ Push Docker image to ECR
       - name: Push Docker image
         run: |
           docker push $ECR_REPOSITORY:$IMAGE_TAG

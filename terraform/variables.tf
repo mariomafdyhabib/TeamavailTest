@@ -13,10 +13,6 @@ variable "existing_ecr_image_uri" {
   default = "654654545585.dkr.ecr.us-east-1.amazonaws.com/mario/konecta:latest"
 }
 
-variable "existing_api_id" {
-  type = string
-}
-
 variable "database_url" {
   type = string
 }
