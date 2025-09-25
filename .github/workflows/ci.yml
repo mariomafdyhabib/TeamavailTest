@@ -126,4 +126,5 @@ jobs:
           TF_API_TOKEN_app_terraform_io: ${{ secrets.TFC_TOKEN }}
         run: |
           terraform init
+          terraform login
           terraform apply --auto-approve
