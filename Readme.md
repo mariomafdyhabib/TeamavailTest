@@ -97,6 +97,9 @@ database_host = "your-database-host"
 database_user = "your-database-username"
 database_password = "your-database-password"
 ```
+![Description of image](photos/image .png)
+
+
 ## 4. Deploy Infrastructure
 ```
 bash
@@ -128,6 +131,8 @@ text
 lambda_function_url = "https://abcd1234.lambda-url.us-east-1.on.aws/"
 ```
 Use this URL to access your application.
+
+![Description of image](photos/image.png)
 
 ## Manual Docker Build (Optional)
 ```
