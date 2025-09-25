@@ -1,187 +1,263 @@
-🛠️ TeamAvail – Employee Availability Tracker (Serverless & DevOps Project)
+## 🛠️ TeamAvailTest – Employee Availability Tracker (Serverless & DevOps Project)
+TeamAvailTest is a modern web application designed to track employee availability across the week, offering managers and teams a clear view of workforce availability. This project demonstrates end-to-end DevOps practices, cloud-native serverless deployment, and infrastructure as code using Terraform, showcasing advanced skills in AWS, Docker, and cloud engineering.
 
-TeamAvail is a modern web application designed to track employee availability across the week, offering managers and teams a clear view of workforce availability. Beyond a simple web app, this project demonstrates end-to-end DevOps practices, cloud-native serverless deployment, and CI/CD automation, showcasing advanced skills in AWS, Terraform, Docker, and GitHub Actions.
+## Project Highlights
+- Serverless deployment: Backend runs as a containerized AWS Lambda function using Docker
 
-This project serves both as a practical employee tracking solution and a demonstration of professional DevOps and cloud engineering capabilities.
+- External database integration: Connects to your existing PostgreSQL database with secure environment variables
 
-Project Highlights
+- Infrastructure as Code: Terraform module to provision AWS resources including Lambda, ECR, and IAM roles
 
-Full-stack web application: Front-end served via Express, back-end powered by Node.js and PostgreSQL.
+- Containerized application: Docker-based deployment with Lambda-compatible runtime
 
-Serverless deployment: Backend runs as a containerized AWS Lambda function, accessible via API Gateway HTTP API.
+- Modular Terraform design: Clean, reusable infrastructure code with output-driven architecture
 
-Cloud database integration: PostgreSQL hosted on NeonDB, leveraging SSL and secure connection strings.
+---
+```
+## Tech Stack & Key Features
 
-Infrastructure as Code: Terraform used to provision AWS resources, including Lambda, ECR, API Gateway, and IAM roles.
-
-CI/CD automation: GitHub Actions builds the Docker image, pushes it to AWS ECR, and deploys the infrastructure using Terraform Cloud.
-
-Modular, maintainable code: Terraform modules separate Lambda, API, and ECR resources for clean and reusable infrastructure code.
-
-Output-driven infrastructure: Terraform provides API endpoint outputs, enabling seamless integration with front-end apps.
-
-Tech Stack & Tools
-Layer	Technology / Service
-Frontend	HTML, CSS, JavaScript
-Backend	Node.js, Express, AWS Lambda (containerized)
-Database	PostgreSQL (NeonDB cloud-hosted)
-Cloud Provider	AWS (Lambda, API Gateway, ECR, IAM)
-Infrastructure IaC	Terraform (modular structure, Terraform Cloud backend)
-CI/CD	GitHub Actions, Docker, Terraform Cloud
-Containerization	Docker, Dockerfile.lambda
-Secrets Management	GitHub Secrets, Terraform Cloud variables
-Logging & Monitoring	AWS CloudWatch
-Key Features
-
-Dynamic Availability Tracking
-
-Employees can select a status for each day of the week.
-
-Front-end validates input and ensures historical data integrity.
-
-Persistent History
-
-History is saved to PostgreSQL with structured JSON data per employee and week.
-
-Provides retrieval of latest availability data via /get-history endpoint.
-
-Serverless Architecture
-
-Node.js backend runs as a Lambda container image.
-
-Fully scalable and cost-efficient.
-
-Exposed via AWS API Gateway HTTP API.
-
-CI/CD Pipeline
-
-GitHub Actions automates Docker image build and push to AWS ECR.
-
-Terraform provisions or updates Lambda and API Gateway automatically.
-
-Optional destroy pipeline ensures safe teardown of all infrastructure.
-
-Security & Best Practices
-
-Database connections are secured via SSL and environment variables.
-
-Terraform Cloud stores state remotely with locking for team-safe deployments.
-
-GitHub Actions secrets used for sensitive data like AWS keys and database credentials.
-
-Architecture Overview
-[Frontend JS/HTML/CSS]
-       |
-       v
-[Express API] -> [AWS Lambda (container)]
-       |
-       v
-[PostgreSQL NeonDB]
-       |
-       v
-[API Gateway HTTP API] -> Exposes Lambda endpoints
+| Layer                 | Technology / Service                                  |
+|----------------------|--------------------------------------------------------|
+| Backend              | Node.js, Express, AWS Lambda (containerized)           |
+| Database             | PostgreSQL (external/your existing database)           |
+| Cloud Provider       | AWS (Lambda, ECR, IAM, CloudWatch)                     |
+| Infrastructure (IaC) | Terraform (modular structure)                          |
+| Containerization     | Docker, Dockerfile                                     |
+| Secrets Management   | Terraform variables (sensitive)                        |
+```
 
 
-CI/CD triggers from GitHub Actions automatically build Docker images, push to AWS ECR, and deploy infrastructure with Terraform Cloud.
+---
 
-Terraform outputs the API Gateway URL, which the front-end uses to access Lambda.
+### Key Features
 
-Setup Instructions
-1. Clone the repository
-git clone https://github.com/mariomafdyhabib/teamavail.git
-cd teamavail
-
-2. Configure environment variables
-
-Locally:
-
-export AWS_ACCESS_KEY_ID=<your_aws_access_key>
-export AWS_SECRET_ACCESS_KEY=<your_aws_secret_key>
-export DATABASE_URL=postgresql://user:password@host:port/dbname
-export TFC_TOKEN=<terraform_cloud_token>
+- **Dynamic Availability Tracking**: Employee status management across the week.
+- **Serverless Architecture**: Node.js backend runs as Lambda container image.
+- **Scalable & Cost-efficient**: Pay-per-use Lambda pricing model.
+- **Secure Database Connections**: Environment variable-based configuration.
+- **Infrastructure as Code**: Reproducible deployments with Terraform.
 
 
-In GitHub Actions, store the same as repository secrets.
+## Architecture Overview
+```
+text
+[Frontend Client] 
+       ↓
+[AWS Lambda (Docker Container)]
+       ↓
+[External PostgreSQL Database]
+Project Structure
+text
+TeamavailTest/
+├── server.js                 # Your Express application
+├── package.json              # Node.js dependencies
+├── Dockerfile                # Lambda container definition
+└── terraform/                # Terraform module
+    ├── main.tf               # Primary resource definitions
+    ├── variables.tf          # Input variables
+    ├── outputs.tf            # Output values (function URL)
+    └── provider.tf           # AWS provider configuration
+```
+## Prerequisites
+- AWS Account with appropriate permissions
 
-3. Run locally
-cd app
-npm install
-npm run start
+- Terraform installed locally
 
+- Docker installed locally
 
-Open http://localhost:3000 to interact with the app locally.
+- Existing PostgreSQL database (external, Neon)
 
-4. Build & Push Lambda Docker Image
-docker build -t teamavail-lambda -f Dockerfile.lambda .
-docker tag teamavail-lambda:latest <aws_account_id>.dkr.ecr.<region>.amazonaws.com/mario/konecta:latest
-docker push <aws_account_id>.dkr.ecr.<region>.amazonaws.com/mario/konecta:latest
+- Node.js and npm
 
-5. Deploy Infrastructure via Terraform Cloud
+## Quick Start
+## 1. Clone the Repository
+```
+bash
+git clone https://github.com/mariomafdyhabib/TeamavailTest.git
+cd TeamavailTest
+```
+## 2. Prepare Your Application
+Ensure your server.js is configured for Lambda:
+
+- Export a handler function that takes event and context parameters
+
+- Use environment variables for database configuration
+
+## 3. Configure Database Connection
+Update the Terraform variables with your database details:
+```
+bash
+cd terraform
+Create a terraform.tfvars file (add to .gitignore for security):
+
+hcl
+region = "us-east-1"
+function_name = "teamavail-lambda"
+database_host = "your-database-host"
+database_user = "your-database-username"
+database_password = "your-database-password"
+```
+## 4. Deploy Infrastructure
+```
+bash
+# Initialize Terraform
 terraform init
-terraform apply --auto-approve
 
+# Plan deployment
+terraform plan
 
-Lambda, API Gateway, ECR repository, and IAM roles are provisioned.
+# Apply configuration
+terraform apply
+```
+Terraform will:
 
-Terraform outputs the API Gateway URL:
+- Create an ECR repository for your Docker image
 
-lambda_api_url = "https://abcd1234.execute-api.us-east-1.amazonaws.com/"
+- Build and push the Docker image to ECR
 
+- Deploy the Lambda function with your database environment variables
 
-Use this URL in your front-end to call the Lambda function.
+- Create necessary IAM roles and permissions
 
-6. CI/CD Pipelines
+- Output the Lambda Function URL
 
-Build & Push: Dockerfile.lambda → AWS ECR
+## 5. Access Your Application
+After deployment, Terraform will output the Lambda Function URL:
+```
+text
+lambda_function_url = "https://abcd1234.lambda-url.us-east-1.on.aws/"
+```
+Use this URL to access your application.
 
-Terraform Apply: Deploy Lambda and API Gateway using Terraform Cloud
+## Manual Docker Build (Optional)
+```
+bash
+# Build the Docker image
+docker build -t teamavail-lambda .
 
-Terraform Destroy: Tear down resources safely using GitHub Actions workflow
+# Test locally (if your Lambda handler is configured for local testing)
+docker run -p 9000:8080 teamavail-lambda
+```
+# Terraform Module Details
+## Input Variables
+- region: AWS region (default: us-east-1)
 
-Pipelines are fully automated and integrated with Terraform Cloud CLI-driven execution mode.
+- function_name: Lambda function name
 
-7. Project Structure
-teamavail/
-├── app/                       # Backend + frontend
-│   ├── Dockerfile.lambda
-│   ├── public/                # HTML, JS, CSS
-│   ├── input/                 # JSON input files
-│   ├── output/                # Optional output files
-│   └── script.js
-├── terraform/
-│   ├── backend.tf             # Terraform Cloud backend
-│   ├── main.tf
-│   ├── variables.tf
-│   ├── outputs.tf
-│   └── modules/
-│       └── lambda/            # Lambda module
-│           ├── main.tf
-│           ├── variables.tf
-│           └── outputs.tf
-├── .github/workflows/         # CI/CD pipelines
-│   ├── build-and-push-ecr.yml
-│   ├── terraform-apply.yml
-│   └── terraform-destroy.yml
-└── README.md
+- database_host: External database hostname
 
-8. Achievements & Learning Outcomes
+- database_user: Database username
 
-Designed modular Terraform infrastructure, reusable for other serverless projects.
+- database_password: Database password
 
-Implemented serverless Lambda container deployment with API Gateway integration.
+## Outputs
+- lambda_function_url: HTTP endpoint for your Lambda function
 
-Automated Docker build and deployment pipelines with GitHub Actions.
+- ecr_repository_url: ECR repository URL for your Docker image
 
-Learned best practices for secure secrets management and remote Terraform state.
+# Application Requirements
+Your server.js should be structured for Lambda execution:
+```
 
-Gained hands-on experience in AWS Cloud, Terraform, ECR, Lambda, API Gateway, PostgreSQL, and CI/CD automation.
+exports.handler = async (event, context) => {
+    // Your application logic here
+    return {
+        statusCode: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "Hello from Lambda!" })
+    };
+};
+```
+## Security Notes
+- Database credentials are stored as sensitive Terraform variables
 
-9. Future Improvements
+- IAM roles follow principle of least privilege
 
-Add user authentication & role-based access.
+- Consider using AWS Secrets Manager for production database credentials
 
-Integrate React or Vue.js front-end for dynamic UI.
+- Use AWS_IAM authorization for Lambda Function URL in production
 
-Add CloudWatch alarms & metrics for Lambda monitoring.
+## Monitoring & Logging
+- Lambda execution logs are available in AWS CloudWatch
 
-Enhance CI/CD with multi-environment support (staging, production).
+- Monitor function metrics (invocations, errors, duration) in CloudWatch
+
+- Set up CloudWatch alarms for error rates and throttling
+
+## Clean Up
+To destroy all created resources:
+```
+bash
+git add .
+git commit -am "destroy"
+git push # run destroy pipeline
+```
+# Customization
+## Modify Lambda Configuration
+Edit terraform/main.tf to adjust:
+
+- Memory size and timeout settings
+
+- Environment variables
+
+- VPC configuration (if needed)
+
+## Add API Gateway
+Extend the Terraform configuration to add API Gateway for advanced routing and authentication.
+
+# Troubleshooting
+## Common Issues
+1. Docker build fails: Check your Dockerfile and ensure all files are in the correct paths
+
+2. Lambda timeout: Increase the timeout value in Lambda configuration
+
+3. Database connection issues: Verify database credentials and network accessibility
+
+4. Permission errors: Check IAM role policies in AWS Console
+
+## Debugging Steps
+1. Check CloudWatch logs for Lambda execution errors
+
+2. Verify environment variables in Lambda configuration
+
+3. Test database connectivity from your local environment
+
+4. Use terraform plan to preview changes before apply
+
+## Future Enhancements
+- Add CI/CD pipeline with GitHub Actions
+
+- Implement API Gateway for advanced routing
+
+- Add CloudFront distribution for caching
+
+- Set up database connection pooling
+
+- Add monitoring and alerting with CloudWatch
+
+- Implement authentication and authorization
+
+- Add frontend deployment to S3 + CloudFront
+
+# Contributing
+1- Fork the repository
+
+2- Create a feature branch
+
+3- Make your changes
+
+4- Test Terraform deployment
+
+5- Submit a pull request
+
+## License
+This project is open source and available under the MIT License.
+
+## Support
+For issues and questions:
+
+- Create an issue in the GitHub repository
+
+- Check Terraform and AWS documentation
+
+- Review AWS Lambda container image guidelines
